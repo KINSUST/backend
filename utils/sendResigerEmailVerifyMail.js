@@ -15,7 +15,7 @@ const sendRegisterEmailVerifyEmail = async (to, code) => {
     await transport.sendMail({
       from: `KIN A Voluntary Organization <${"kinsustweb03@gmail.com"}> `,
       to: to,
-      subject: "Password Change",
+      subject: "Create a new account",
       html: `
 
    <!DOCTYPE html>
