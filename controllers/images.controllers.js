@@ -117,10 +117,38 @@ const usersImageDelete=async(req,res,next)=>{
         next(error)
     }
 }
+// post images
+const postImages=async(req,res,next)=>{
+    try {
+        const allImages = checkImage("post")
+        res.status(200).json({
+            status:"success",
+            data:allImages
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+// single advisor image delete
+const postImageDelete=async(req,res,next)=>{
+    const {name}=req.params
+    try {
+        unlinkSync(
+          path.join(__dirname, `../public/images/post/${name}`)
+        );
+        res.status(200).json({
+            status:"success",
+            message:"successfully deleted"
+        })
+    } catch (error) {
+        next(error)
+    }
+}
 
 
 
 
 module.exports ={
-    advisorsImages,advisorsImageDelete,slidersImageDelete,slidersImages,programImageDelete,programImages,usersImageDelete,usersImages
+    advisorsImages,advisorsImageDelete,slidersImageDelete,slidersImages,programImageDelete,programImages,usersImageDelete,usersImages,postImages,postImageDelete
 }

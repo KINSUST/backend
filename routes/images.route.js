@@ -1,5 +1,5 @@
 const express =require('express')
-const { advisorsImages, advisorsImageDelete, slidersImages, slidersImageDelete, programImages, programImageDelete, usersImages, usersImageDelete } = require('../controllers/images.controllers')
+const { advisorsImages, advisorsImageDelete, slidersImages, slidersImageDelete, programImages, programImageDelete, usersImages, usersImageDelete, postImages, postImageDelete } = require('../controllers/images.controllers')
 
 
 const router=express.Router()
@@ -19,6 +19,9 @@ router.route("/program/:name").delete(programImageDelete);
 // users
 router.route("/users").get(usersImages);
 router.route("/users/:name").delete(usersImageDelete);
+// post
+router.route("/post").get(postImages);
+router.route("/post/:name").delete(postImageDelete);
 
 
 

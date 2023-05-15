@@ -12,7 +12,7 @@ const mongoDBConnection = async () => {
     console.log(`${error.message}`.bgRed)
   }
 }; 
-
+ 
 // export
 module.exports = mongoDBConnection; 
    

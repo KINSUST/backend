@@ -1,4 +1,3 @@
-
 const postDocument = require("../models/post.model");
 const { unlinkSync } = require("fs");
 const path = require("path");
@@ -6,33 +5,38 @@ const customError = require("../utils/customError");
 const postModel = require("../models/post.model");
 const imageMulter = require("../middlewares/photoUpload.middleware");
 const { isValidObjectId } = require("mongoose");
+const queryFunction = require("../utils/queryFunction");
+const { log } = require("console");
+const checkImage = require("../utils/imagesCheck");
 
 /**
  * @description get all post  data
- * @method GET  
+ * @method GET
  * @route  /api/v1/post
  * @access public
  */
 
 const allPost = async (req, res, next) => {
   try {
-    const size = parseInt(req.query.size);
-    const page = parseInt(req.query.page);
+    const { queries, filters } = queryFunction(req);
 
-    const result = await postModel
-      .find()
-      .sort({ _id: -1 })
-      .skip(size * page)
-      .limit(size);
-    if (result.length < 1) {
-      throw customError(200, "No program data has founded");
+    const post = await postModel
+      .find(filters)
+      .skip(queries.skip)
+      .limit(queries.limit)
+      .sort(queries.sortBy);
+    if (post.length < 1) {
+      throw customError(200, "No post data has founded");
     }
 
-    const count = await postModel.estimatedDocumentCount();
+    // page , total count
+    const total = await postModel.countDocuments(filters);
+    const pages = Math.ceil(total / queries.limit);
     res.status(200).json({
       status: "success",
-      total_document: count,
-      result,
+      total,
+      pages,
+      data: post,
     });
   } catch (error) {
     next(error);
@@ -41,7 +45,7 @@ const allPost = async (req, res, next) => {
 
 /**
  * @description add new post  data
- * @method POST   
+ * @method POST
  * @route  /api/v1/post
  * @access private
  */
@@ -52,13 +56,13 @@ const createPost = async (req, res, next) => {
       if (err) {
         next(err);
       } else {
-        const result = await postModel.create({
+        const post = await postModel.create({
           ...req.body,
           photo: req?.file?.filename,
         });
         res.status(200).json({
           status: "success",
-          result,
+          data:post,
         });
       }
     } catch (error) {
@@ -66,10 +70,10 @@ const createPost = async (req, res, next) => {
     }
   });
 };
- 
+
 /**
  * @description get single post  data
- * @method GET   
+ * @method GET
  * @route  /api/v1/post/:slug
  * @access private
  */
@@ -82,12 +86,12 @@ const singlePost = async (req, res, next) => {
     // post slug validation check
 
     if (!post) {
-      throw customError(400, "Invalid slug");
+      throw customError(404, "No post found");
     }
 
     res.status(200).json({
       status: "success",
-      result: post,
+      data: post,
     });
   } catch (error) {
     next(error);
@@ -96,7 +100,7 @@ const singlePost = async (req, res, next) => {
 
 /**
  * @description delete single post  data
- * @method DELETE    
+ * @method DELETE
  * @route  /api/v1/post/:slug
  * @access private
  */
@@ -108,13 +112,18 @@ const deletePost = async (req, res, next) => {
     const post = await postModel.findOne().where("slug").equals(slug);
     // post slug validation check
     if (!post) {
-      throw customError(400, "Invalid slug");
+      throw customError(400, "No post found");
     }
-    unlinkSync(path.join(__dirname, `../public/images/post/${post.photo}`));
-    const result = await postDocument
-      .findOneAndDelete()
-      .where("slug")
-      .equals(slug);
+    
+
+    // find image in folder & delete
+    checkImage("post").find((image) => image === post?.photo) &&
+      unlinkSync(
+        path.join(__dirname, `../public/images/post/${post?.photo}`)
+      );
+    const result = await postModel
+      .findOneAndDelete({slug})
+     
     res.status(200).json({
       status: "success",
       message: "successfully deleted.",
@@ -126,34 +135,33 @@ const deletePost = async (req, res, next) => {
 
 /**
  * @description update single post  data
- * @method PUT / PATCH  
+ * @method PUT / PATCH
  * @route  /api/v1/post/:slug
  * @access private
  */
 
-const updatePost = async (req, res,next) => {
+const updatePost = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    // post id validation check
-    if (!isValidObjectId(req.params.id)) {
-      throw customError(400, "Invalid postID");
-    }
-    const post= await postModel.findById(req.params.id);
-    // slider check
+    const slug = req.params.slug;
+    const post = await postModel.findOne().where("slug").equals(slug);
+    // post slug validation check
+
     if (!post) {
-      throw customError(400, "No post data has founded");
+      throw customError(404, "No post found");
     }
-    const data = req.body.comment;
-    const result = await postDocument.findByIdAndUpdate(
-      req.params.id,
+
+
+    const result = await postDocument.findOneAndUpdate(
+      { slug },
       {
-        $push:{comment:data},
+        $push: { comment: req?.body?.comment },
+        $set: { slug: req?.body?.slug },
       },
       { new: true }
     );
     res.status(200).json({
       status: "success",
-      message: result,
+      data: result,
     });
   } catch (error) {
     next(error);

@@ -15,6 +15,7 @@ const queryFunction = require("../utils/queryFunction");
 const randomCode = require("../utils/randomCode");
 const sendPasswordResetEmail = require("../utils/sendPassordResetEmail");
 const { log } = require("console");
+const sendRegisterEmailVerifyEmail = require("../utils/sendResigerEmailVerifyMail");
 
 /**
  * @description get all users data
@@ -87,7 +88,8 @@ const registerByToken = async (req, res, next) => {
       code: hashCode,
       email: req.body.email,
     });
-    sendMail(req.body.email, generateCode);
+
+    sendRegisterEmailVerifyEmail(req.body.email, generateCode);
     console.log(generateCode);
     const { code, ...temporaryData } = result._doc;
 
@@ -518,7 +520,7 @@ const passwordRecover = async (req, res, next) => {
     });
     // code send to email
     sendPasswordResetEmail(req.body.email,generateCode)
-    // sendMail(req.body.email, generateCode);
+
     console.log(generateCode);
     const { code, ...temporaryData } = result._doc; 
 

@@ -15,7 +15,8 @@ const checkImage = require("../utils/imagesCheck");
  * @method GET
  * @route  /api/v1/advisors
  * @access public
- */
+ */  
+
 
 const allAdvisor = async (req, res, next) => {
   const { queries, filters } = queryFunction(req);

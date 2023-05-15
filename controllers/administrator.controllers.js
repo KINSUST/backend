@@ -261,6 +261,7 @@ const getLoggedInAdministrator = async (req, res, next) => {
     }
 
     const loginUser = jwt.verify(token, process.env.SECRET_CODE) || null;
+   
 
     // login token validation check
     if (!loginUser) {
@@ -269,6 +270,11 @@ const getLoggedInAdministrator = async (req, res, next) => {
 
     // login user data
     const user = await administratorModel.findById(loginUser._id);
+
+    if(!user){
+      throw customError((401, "Invalid token"));
+    }
+    
     res.status(200).json({
       status: "success",
       data: user,

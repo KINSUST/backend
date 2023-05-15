@@ -17,7 +17,7 @@ const imagesRouter = require("./routes/images.route");
 const globalError = require("./middlewares/globalError.middleware");
 const mongoDBConnection = require("./config/db");
 
-//init environment variable
+//init environment variable 
 const port = process.env.PORT || 5005; 
 
 //express init
